@@ -3,6 +3,9 @@
 #include "LinkedList.h"
 #include "Sorting.h"
 #include "FileIO.h"
+#include <filesystem>
+// Force all File I/O to use the workspace project folder
+std::filesystem::path g_project_root = std::filesystem::path(__FILE__).parent_path();
 
 void displayMenu() {
     std::cout << "\n=========================================\n";

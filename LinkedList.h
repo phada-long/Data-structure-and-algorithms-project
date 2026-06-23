@@ -46,8 +46,11 @@ inline void displayCourses(CourseList* ls) {
     CourseElement* curr = ls->head;
     while (curr != nullptr) {
         std::cout << "[Course ID: " << curr->data.courseID 
-                  << "] Name: " << curr->data.courseName 
-                  << " | Credits: " << curr->data.credits << "\n";
+                  << "] Title: " << curr->data.courseName 
+                  << " | Credits: " << curr->data.credits
+                  << " | Dept: " << curr->data.department
+                  << " | Capacity: " << curr->data.currentEnrollment << "/" << curr->data.maxCapacity
+                  << " | Instructor: " << curr->data.instructor << "\n";
         curr = curr->next;
     }
 }
@@ -134,7 +137,11 @@ inline void displayStudents(StudentList* ls) {
     while (curr != nullptr) {
         std::cout << "[ID: " << curr->data.studentID 
                   << "] Name: " << curr->data.name 
-                  << " | GPA: " << curr->data.gpa << "\n";
+                  << " | Major: " << curr->data.major
+                  << " | Year: " << curr->data.year
+                  << " | GPA: " << curr->data.gpa
+                  << " | Enrolled: " << joinCourseCodes(curr->data.enrolledCourses)
+                  << "\n";
         curr = curr->next;
     }
 }

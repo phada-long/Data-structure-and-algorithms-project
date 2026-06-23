@@ -30,7 +30,10 @@ inline void saveStudentsToCSV(StudentList* ls, std::string filename) {
     while (curr != nullptr) {
         file << curr->data.studentID << ","
              << curr->data.name << ","
-             << curr->data.gpa << "\n";
+             << curr->data.major << ","
+             << curr->data.year << ","
+             << curr->data.gpa << ","
+             << joinCourseCodes(curr->data.enrolledCourses) << "\n";
         curr = curr->next;
         written++;
     }
@@ -53,24 +56,30 @@ inline void loadStudentsFromCSV(StudentList* ls, std::string filename) {
         if (line.empty()) continue;
         std::stringstream ss(line);
         Student s;
-        std::string gpaStr;
+        std::string yearStr, gpaStr, enrolledStr;
 
         std::getline(ss, s.studentID, ',');
         std::getline(ss, s.name, ',');
-        // read remainder of line for GPA (handles missing trailing comma)
-        std::getline(ss, gpaStr);
+        std::getline(ss, s.major, ',');
+        std::getline(ss, yearStr, ',');
+        std::getline(ss, gpaStr, ',');
+        std::getline(ss, enrolledStr);
 
         s.studentID = trim(s.studentID);
         s.name = trim(s.name);
+        s.major = trim(s.major);
+        yearStr = trim(yearStr);
         gpaStr = trim(gpaStr);
+        enrolledStr = trim(enrolledStr);
 
-        if(!s.studentID.empty() && !s.name.empty() && !gpaStr.empty()) {
+        if(!s.studentID.empty() && !s.name.empty() && !yearStr.empty() && !gpaStr.empty()) {
             try {
+                s.year = std::stoi(yearStr);
                 s.gpa = std::stod(gpaStr);
+                s.enrolledCourses = splitCourseCodes(enrolledStr);
                 insertStudentEnd(ls, s);
                 loaded++;
             } catch(...) {
-                // skip malformed GPA field
                 continue;
             }
         }
@@ -93,7 +102,11 @@ inline void saveCoursesToCSV(CourseList* ls, std::string filename) {
     while (curr != nullptr) {
         file << curr->data.courseID << ","
              << curr->data.courseName << ","
-             << curr->data.credits << "\n";
+             << curr->data.credits << ","
+             << curr->data.department << ","
+             << curr->data.maxCapacity << ","
+             << curr->data.currentEnrollment << ","
+             << curr->data.instructor << "\n";
         curr = curr->next;
         written++;
     }
@@ -116,20 +129,29 @@ inline void loadCoursesFromCSV(CourseList* ls, std::string filename) {
         if (line.empty()) continue;
         std::stringstream ss(line);
         Course c;
-        std::string creditsStr;
+        std::string creditsStr, maxCapacityStr, currentEnrollmentStr;
 
         std::getline(ss, c.courseID, ',');
         std::getline(ss, c.courseName, ',');
-        // read remainder of line for credits
-        std::getline(ss, creditsStr);
+        std::getline(ss, creditsStr, ',');
+        std::getline(ss, c.department, ',');
+        std::getline(ss, maxCapacityStr, ',');
+        std::getline(ss, currentEnrollmentStr, ',');
+        std::getline(ss, c.instructor);
 
         c.courseID = trim(c.courseID);
         c.courseName = trim(c.courseName);
         creditsStr = trim(creditsStr);
+        c.department = trim(c.department);
+        maxCapacityStr = trim(maxCapacityStr);
+        currentEnrollmentStr = trim(currentEnrollmentStr);
+        c.instructor = trim(c.instructor);
 
-        if(!c.courseID.empty() && !c.courseName.empty() && !creditsStr.empty()) {
+        if(!c.courseID.empty() && !c.courseName.empty() && !creditsStr.empty() && !maxCapacityStr.empty() && !currentEnrollmentStr.empty()) {
             try {
                 c.credits = std::stoi(creditsStr);
+                c.maxCapacity = std::stoi(maxCapacityStr);
+                c.currentEnrollment = std::stoi(currentEnrollmentStr);
                 insertCourseEnd(ls, c);
                 loadedC++;
             } catch(...) {

@@ -61,6 +61,7 @@ int main() {
     // Load data
     loadStudentsFromCSV(studentList, "students.csv");
     loadCoursesFromCSV(courseList, "courses.csv");
+    loadQueueFromCSV(waitQueue, "queue.csv");
 
     // Build department tree
     buildDepartmentTree(departmentTree, courseList);
@@ -273,6 +274,7 @@ int main() {
         case 15:
             saveStudentsToCSV(studentList, "students.csv");
             saveCoursesToCSV(courseList, "courses.csv");
+            saveQueueToCSV(waitQueue, "queue.csv");
             break;
 
         case 17:

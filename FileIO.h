@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include "LinkedList.h"
+#include "Queue.h"
 #include <filesystem>
 
 // Global project root (defined in main.cpp)
@@ -161,6 +162,64 @@ inline void loadCoursesFromCSV(CourseList* ls, std::string filename) {
     }
     file.close();
     std::cout << "Course records loaded: " << loadedC << " from " << filePath.string() << "\n";
+}
+
+// Load Queue from CSV
+inline void loadQueueFromCSV(WaitQueue* q, std::string filename) {
+    std::filesystem::path filePath = g_project_root / filename;
+    std::ifstream file(filePath.string());
+    if (!file.is_open()) {
+        std::cout << "No existing queue database found at " << filePath.string() << ". Starting fresh.\n";
+        return;
+    }
+
+    std::string line;
+    int loaded = 0;
+    // Skip header line
+    std::getline(file, line);
+    
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+        std::stringstream ss(line);
+        std::string studentID, courseID;
+
+        std::getline(ss, studentID, ',');
+        std::getline(ss, courseID);
+
+        studentID = trim(studentID);
+        courseID = trim(courseID);
+
+        if(!studentID.empty() && !courseID.empty()) {
+            enqueueRequest(q, studentID, courseID);
+            loaded++;
+        }
+    }
+    file.close();
+    std::cout << "Queue records loaded: " << loaded << " from " << filePath.string() << "\n";
+}
+
+// Save Queue to CSV
+inline void saveQueueToCSV(WaitQueue* q, std::string filename) {
+    std::filesystem::path filePath = g_project_root / filename;
+    std::ofstream file(filePath.string());
+    if (!file.is_open()) {
+        std::cout << "Error opening file for saving!\n";
+        return;
+    }
+
+    // Write header
+    file << "studentID,courseID\n";
+
+    int written = 0;
+    if (!isWaitQueueEmpty(q)) {
+        for (int i = q->front; i <= q->rear; i++) {
+            file << q->Q[i].studentID << ","
+                 << q->Q[i].courseID << "\n";
+            written++;
+        }
+    }
+    file.close();
+    std::cout << "Queue records successfully saved (" << written << ") to " << filePath.string() << "\n";
 }
 
 #endif

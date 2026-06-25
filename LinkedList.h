@@ -43,14 +43,41 @@ inline void displayCourses(CourseList* ls) {
         std::cout << "No courses found in the system.\n";
         return;
     }
+    
+    std::cout << "=============================================================\n";
     CourseElement* curr = ls->head;
     while (curr != nullptr) {
-        std::cout << "[Course ID: " << curr->data.courseID 
-                  << "] Title: " << curr->data.courseName 
-                  << " | Credits: " << curr->data.credits
-                  << " | Dept: " << curr->data.department
-                  << " | Capacity: " << curr->data.currentEnrollment << "/" << curr->data.maxCapacity
-                  << " | Instructor: " << curr->data.instructor << "\n";
+        // Line 1: Course ID and Course Name
+        std::string line1 = "   Course ID: " + curr->data.courseID;
+        line1 += std::string(30 - (13 + curr->data.courseID.length()), ' ');
+        line1 += "Course Name: " + curr->data.courseName;
+        line1 = line1.substr(0, 57);
+        line1 += std::string(57 - line1.length(), ' ');
+        std::cout << "|" << line1 << "|\n";
+        
+        // Line 2: Credits and Department
+        std::string creditsStr = std::to_string(curr->data.credits);
+        std::string line2 = "   Credits: " + creditsStr;
+        line2 += std::string(31 - (11 + creditsStr.length()), ' ');
+        line2 += "Department: " + curr->data.department;
+        line2 = line2.substr(0, 57);
+        line2 += std::string(57 - line2.length(), ' ');
+        std::cout << "|" << line2 << "|\n";
+        
+        // Line 3: Instructor
+        std::string line3 = "   Instructor: " + curr->data.instructor;
+        line3 = line3.substr(0, 57);
+        line3 += std::string(57 - line3.length(), ' ');
+        std::cout << "|" << line3 << "|\n";
+        
+        // Line 4: Capacity
+        std::string capacityStr = std::to_string(curr->data.currentEnrollment) + "/" + std::to_string(curr->data.maxCapacity);
+        std::string line4 = "   Capacity: " + capacityStr;
+        line4 = line4.substr(0, 57);
+        line4 += std::string(57 - line4.length(), ' ');
+        std::cout << "|" << line4 << "|\n";
+        
+        std::cout << "=============================================================\n";
         curr = curr->next;
     }
 }

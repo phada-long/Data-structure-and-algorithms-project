@@ -133,15 +133,41 @@ inline void displayStudents(StudentList* ls) {
         std::cout << "No student entries recorded.\n";
         return;
     }
+    
+    std::cout << "=============================================================\n";
     StudentElement* curr = ls->head;
     while (curr != nullptr) {
-        std::cout << "[ID: " << curr->data.studentID 
-                  << "] Name: " << curr->data.name 
-                  << " | Major: " << curr->data.major
-                  << " | Year: " << curr->data.year
-                  << " | GPA: " << curr->data.gpa
-                  << " | Enrolled: " << joinCourseCodes(curr->data.enrolledCourses)
-                  << "\n";
+        // Line 1: ID and Year
+        std::string line1 = "   ID: " + curr->data.studentID;
+        line1 += std::string(30 - (6 + curr->data.studentID.length()), ' ');
+        line1 += "Year: " + std::to_string(curr->data.year);
+        line1 = line1.substr(0, 57);
+        line1 += std::string(57 - line1.length(), ' ');
+        std::cout << "|" << line1 << "|\n";
+        
+        // Line 2: Name and Major
+        std::string line2 = "   Name: " + curr->data.name;
+        line2 += std::string(28 - (8 + curr->data.name.length()), ' ');
+        line2 += "Major: " + curr->data.major;
+        line2 = line2.substr(0, 57);
+        line2 += std::string(57 - line2.length(), ' ');
+        std::cout << "|" << line2 << "|\n";
+        
+        // Line 3: GPA
+        std::string gpaStr = std::to_string(curr->data.gpa);
+        gpaStr = gpaStr.substr(0, gpaStr.find('.') + 3);  // Limit to 2 decimal places
+        std::string line3 = "   GPA: " + gpaStr;
+        line3 += std::string(57 - line3.length(), ' ');
+        std::cout << "|" << line3 << "|\n";
+        
+        // Line 4: Enrolled
+        std::string enrolledStr = joinCourseCodes(curr->data.enrolledCourses);
+        std::string line4 = "   Enrolled: " + enrolledStr;
+        line4 = line4.substr(0, 57);
+        line4 += std::string(57 - line4.length(), ' ');
+        std::cout << "|" << line4 << "|\n";
+        
+        std::cout << "=============================================================\n";
         curr = curr->next;
     }
 }

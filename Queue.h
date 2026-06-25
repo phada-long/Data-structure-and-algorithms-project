@@ -52,21 +52,6 @@ inline void enqueueRequest(WaitQueue* q, const std::string& studentID, const std
     q->Q[q->rear] = request;
 }
 
-inline bool dequeueRequest(WaitQueue* q, EnrollmentRequest& request) {
-    if (isWaitQueueEmpty(q)) {
-        return false;
-    }
-
-    request = q->Q[q->front];
-    if (q->front == q->rear) {
-        q->front = -1;
-        q->rear = -1;
-    } else {
-        q->front++;
-    }
-    return true;
-}
-
 inline void displayWaitQueue(WaitQueue* q) {
     if (isWaitQueueEmpty(q)) {
         std::cout << "No waiting students in queue.\n";
@@ -83,6 +68,41 @@ inline void displayWaitQueue(WaitQueue* q) {
 inline void clearWaitQueue(WaitQueue* q) {
     q->front = -1;
     q->rear = -1;
+}
+
+inline bool removeFromQueueByID(WaitQueue* q, const std::string& studentID, const std::string& courseID) {
+    if (isWaitQueueEmpty(q)) {
+        return false;
+    }
+
+    // Find the request to remove
+    int removeIndex = -1;
+    for (int i = q->front; i <= q->rear; i++) {
+        if (q->Q[i].studentID == studentID && q->Q[i].courseID == courseID) {
+            removeIndex = i;
+            break;
+        }
+    }
+
+    // If not found, return false
+    if (removeIndex == -1) {
+        return false;
+    }
+
+    // Shift elements after the removed index
+    for (int i = removeIndex; i < q->rear; i++) {
+        q->Q[i] = q->Q[i + 1];
+    }
+
+    // Update rear pointer
+    if (q->front == q->rear) {
+        q->front = -1;
+        q->rear = -1;
+    } else {
+        q->rear--;
+    }
+
+    return true;
 }
 
 #endif

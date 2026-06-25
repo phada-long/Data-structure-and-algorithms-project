@@ -34,7 +34,7 @@ void displayMenu() {
     cout << "8. Sort Students by GPA\n";
     cout << "9. Sort Students by ID\n";
     cout << "10. Search Course (HashTable)\n";
-    cout << "11. Display Course (HashTable)\n";
+    cout << "11. Display Course HashTable (HashTable)\n";
     cout << "12. Enqueue Waitlist\n";
     cout << "13. Dequeue Waitlist\n";
     cout << "14. Display Queue\n";
@@ -262,8 +262,19 @@ int main() {
 
         case 13:
         {
-            EnrollmentRequest r;
-            dequeueRequest(waitQueue, r);
+            string sid, cid;
+            cout << "Enter Student ID to remove from queue: ";
+            getline(cin, sid);
+            cout << "Enter Course ID to remove from queue: ";
+            getline(cin, cid);
+
+            if (removeFromQueueByID(waitQueue, sid, cid)) {
+                cout << "Student removed from waitlist successfully!\n";
+                undoStack.pushAction(DROP_COURSE,
+                                     "Removed: " + sid + " -> " + cid);
+            } else {
+                cout << "Student not found in waitlist!\n";
+            }
             break;
         }
 

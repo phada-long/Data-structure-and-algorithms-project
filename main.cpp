@@ -11,7 +11,6 @@
 #include "UndoStack.h"
 #include "Tree.h"
 
-
 using namespace std;
 
 // Global project path
@@ -21,7 +20,8 @@ std::filesystem::path g_project_root = std::filesystem::path(__FILE__).parent_pa
 UndoStack undoStack;
 
 // ================= MENU =================
-void displayMenu() {
+void displayMenu()
+{
     cout << "\n=========================================\n";
     cout << "   UNIVERSITY COURSE REGISTRATION SYSTEM   \n";
     cout << "=========================================\n";
@@ -44,20 +44,22 @@ void displayMenu() {
     cout << "17. Undo Last Action\n";
     cout << "18. Show Action History\n";
     cout << "16. Exit\n";
-    cout << "Select option: ";
     cout << "19. Display Department Tree\n";
     cout << "20. Search Department\n";
+    cout << "Select option: ";
 }
 
-// ================= MAIN =================
-int main() {
 
-    StudentList* studentList = createStudentList();
-    CourseList* courseList = createCourseList();
-    CourseHashTable* courseTable = createCourseHashTable();
-    WaitQueue* waitQueue = createWaitQueue();
-    DepartmentNode* departmentTree = nullptr;
-    
+// ================= MAIN =================
+int main()
+{
+
+    StudentList *studentList = createStudentList();
+    CourseList *courseList = createCourseList();
+    CourseHashTable *courseTable = createCourseHashTable();
+    WaitQueue *waitQueue = createWaitQueue();
+    DepartmentNode *departmentTree = nullptr;
+
     int choice;
 
     // Load data
@@ -68,95 +70,82 @@ int main() {
     buildDepartmentTree(departmentTree, courseList);
 
     // Build hash table
-    CourseElement* curr = courseList->head;
-    while (curr != nullptr) {
+    CourseElement *curr = courseList->head;
+    while (curr != nullptr)
+    {
         insertCourseHash(courseTable,
-            curr->data.courseID,
-            curr->data.courseName,
-            curr->data.credits,
-            curr->data.department,
-            curr->data.maxCapacity,
-            curr->data.currentEnrollment,
-            curr->data.instructor);
+                         curr->data.courseID,
+                         curr->data.courseName,
+                         curr->data.credits,
+                         curr->data.department,
+                         curr->data.maxCapacity,
+                         curr->data.currentEnrollment,
+                         curr->data.instructor);
 
         curr = curr->next;
     }
 
-    do {
+    do
+    {
         displayMenu();
         cin >> choice;
         cin.ignore();
 
-        switch (choice) {
-
-        // ================= ADD STUDENT =================
-        case 1: {
+        switch (choice)
+        {
+        case 1:
+        {
             Student s;
-
             cout << "Enter Student ID: ";
             getline(cin, s.studentID);
-
             cout << "Enter Full Name: ";
             getline(cin, s.name);
-
             cout << "Enter Major: ";
             getline(cin, s.major);
-
             cout << "Enter Year: ";
             cin >> s.year;
-
             cout << "Enter GPA: ";
             cin >> s.gpa;
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
             cout << "Enter enrolled courses: ";
             string line;
             getline(cin, line);
-
             s.enrolledCourses = splitCourseCodes(line);
-
             insertStudentEnd(studentList, s);
-
             // ⭐ UNDO TRACKING
             undoStack.pushAction(ADD_STUDENT,
-                "ID:" + s.studentID + " Name:" + s.name);
-
+                                 "ID:" + s.studentID + " Name:" + s.name);
             cout << "Student added successfully!\n";
             break;
         }
-
-        // ================= DISPLAY STUDENTS =================
         case 2:
             displayStudents(studentList);
             break;
 
-        // ================= UPDATE GPA =================
-        case 3: {
+        case 3:
+        {
             string id;
             double gpa;
-
             cout << "Enter ID: ";
             getline(cin, id);
-
             cout << "Enter new GPA: ";
             cin >> gpa;
             cin.ignore();
-
-            if (updateStudentGPA(studentList, id, gpa)) {
-
+            if (updateStudentGPA(studentList, id, gpa))
+            {
                 undoStack.pushAction(UPDATE_GPA,
-                    "ID:" + id + " GPA updated");
-
+                                     "ID:" + id + " GPA updated");
                 cout << "Updated successfully!\n";
             }
-            else {
+            else
+            {
                 cout << "Student not found!\n";
             }
             break;
         }
 
-        // ================= DELETE STUDENT =================
-        case 4: {
+        case 4:
+        {
             string id;
 
             cout << "Enter ID to delete: ";
@@ -165,14 +154,14 @@ int main() {
             deleteStudentByID(studentList, id);
 
             undoStack.pushAction(DELETE_STUDENT,
-                "Deleted ID:" + id);
+                                 "Deleted ID:" + id);
 
             cout << "Deleted successfully!\n";
             break;
         }
 
-        // ================= ADD COURSE =================
-        case 5: {
+        case 5:
+        {
             Course c;
 
             cout << "Enter Course ID: ";
@@ -204,31 +193,28 @@ int main() {
             departmentTree =
                 insertDepartment(
                     departmentTree,
-                    c.department
-                );
+                    c.department);
 
             insertCourseHash(courseTable,
-                c.courseID,
-                c.courseName,
-                c.credits,
-                c.department,
-                c.maxCapacity,
-                c.currentEnrollment,
-                c.instructor);
+                             c.courseID,
+                             c.courseName,
+                             c.credits,
+                             c.department,
+                             c.maxCapacity,
+                             c.currentEnrollment,
+                             c.instructor);
 
             undoStack.pushAction(ADD_COURSE,
-                "Course:" + c.courseID);
+                                 "Course:" + c.courseID);
 
             cout << "Course added!\n";
             break;
         }
 
-        // ================= DISPLAY COURSES =================
         case 6:
             displayCourses(courseList);
             break;
 
-        // ================= SORTING =================
         case 7:
             bubbleSortStudentsByName(studentList);
             break;
@@ -241,13 +227,13 @@ int main() {
             quickSortStudentsByID(studentList);
             break;
 
-        // ================= HASH SEARCH =================
-        case 10: {
+        case 10:
+        {
             string id;
             cout << "Enter Course ID: ";
             getline(cin, id);
 
-            CourseEntry* res = searchCourseHash(courseTable, id);
+            CourseEntry *res = searchCourseHash(courseTable, id);
 
             if (res)
                 cout << res->courseName << endl;
@@ -261,8 +247,8 @@ int main() {
             displayCourseHashTable(courseTable);
             break;
 
-        // ================= QUEUE =================
-        case 12: {
+        case 12:
+        {
             string sid, cid;
             cout << "Student ID: ";
             getline(cin, sid);
@@ -273,12 +259,13 @@ int main() {
             enqueueRequest(waitQueue, sid, cid);
 
             undoStack.pushAction(DROP_COURSE,
-                sid + " -> " + cid);
+                                 sid + " -> " + cid);
 
             break;
         }
 
-        case 13: {
+        case 13:
+        {
             EnrollmentRequest r;
             dequeueRequest(waitQueue, r);
             break;
@@ -288,13 +275,11 @@ int main() {
             displayWaitQueue(waitQueue);
             break;
 
-        // ================= SAVE =================
         case 15:
             saveStudentsToCSV(studentList, "students.csv");
             saveCoursesToCSV(courseList, "courses.csv");
             break;
 
-        // ================= UNDO =================
         case 17:
             undoStack.undo();
             break;
@@ -303,38 +288,32 @@ int main() {
             undoStack.showHistory();
             break;
 
-        // ================= EXIT =================
-        case 16:
-            saveStudentsToCSV(studentList, "students.csv");
-            saveCoursesToCSV(courseList, "courses.csv");
-            cout << "Goodbye!\n";
+        case 19:
+        {
+            cout << "\n===== DEPARTMENT TREE =====\n";
+            inorderDepartment(departmentTree);
             break;
+        }
+
+        case 20:
+        {
+            string dept;
+            cout << "Enter Department Name: ";
+            getline(cin, dept);
+            DepartmentNode *result =
+                searchDepartment(departmentTree, dept);
+            if (result)
+                cout << "Department Found: "
+                     << result->department << endl;
+            else
+                cout << "Department Not Found\n";
+
+            break;
+        }
 
         default:
             cout << "Invalid option!\n";
         }
-        case 19:
-        cout << "\n===== DEPARTMENT TREE =====\n";
-        inorderDepartment(departmentTree);
-        break;
-
-        case 20: {
-        string dept;
-
-        cout << "Enter Department Name: ";
-        getline(cin, dept);
-
-        DepartmentNode* result =
-        searchDepartment(departmentTree, dept);
-
-        if (result)
-        cout << "Department Found: "
-             << result->department << endl;
-        else
-        cout << "Department Not Found\n";
-
-        break;
-    }
 
     } while (choice != 16);
 

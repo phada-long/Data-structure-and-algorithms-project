@@ -1,200 +1,306 @@
 #include <iostream>
 #include <limits>
 #include <string>
+#include <filesystem>
+
 #include "LinkedList.h"
 #include "Sorting.h"
 #include "FileIO.h"
 #include "Queue.h"
 #include "HashTable.h"
-#include <filesystem>
+#include "UndoStack.h"
 
-// Force all File I/O to use the workspace project folder
+using namespace std;
+
+// Global project path
 std::filesystem::path g_project_root = std::filesystem::path(__FILE__).parent_path();
 
+// ================= UNDO SYSTEM OBJECT =================
+UndoStack undoStack;
+
+// ================= MENU =================
 void displayMenu() {
-    std::cout << "\n=========================================\n";
-    std::cout << "   UNIVERSITY COURSE REGISTRATION SYSTEM   \n";
-    std::cout << "=========================================\n";
-    std::cout << "1. Add a Student\n";
-    std::cout << "2. Display All Students\n";
-    std::cout << "3. Update Student GPA\n";
-    std::cout << "4. Delete Student by ID\n";
-    std::cout << "5. Add a Course\n";
-    std::cout << "6. Display All Courses\n";
-    std::cout << "7. Sort Students by Name (Bubble Sort)\n";
-    std::cout << "8. Sort Students by GPA (Selection Sort Descending)\n";
-    std::cout << "9. Sort Students by ID (Quick Sort)\n";
-    std::cout << "10. Search Course by Code (HashTable)\n";
-    std::cout << "11. Display Course (HashTable)\n";
-    std::cout << "12. Enqueue Waitlist Request (Queue)\n";
-    std::cout << "13. Dequeue Waitlist Request (Queue)\n";
-    std::cout << "14. Display Waiting Queue (Queue)\n";
-    std::cout << "15. Save Database to CSV\n";
-    std::cout << "16. Exit System\n";
-    std::cout << "Select an option (1-16): ";
+    cout << "\n=========================================\n";
+    cout << "   UNIVERSITY COURSE REGISTRATION SYSTEM   \n";
+    cout << "=========================================\n";
+
+    cout << "1. Add a Student\n";
+    cout << "2. Display All Students\n";
+    cout << "3. Update Student GPA\n";
+    cout << "4. Delete Student by ID\n";
+    cout << "5. Add a Course\n";
+    cout << "6. Display All Courses\n";
+    cout << "7. Sort Students by Name\n";
+    cout << "8. Sort Students by GPA\n";
+    cout << "9. Sort Students by ID\n";
+    cout << "10. Search Course (HashTable)\n";
+    cout << "11. Display Course (HashTable)\n";
+    cout << "12. Enqueue Waitlist\n";
+    cout << "13. Dequeue Waitlist\n";
+    cout << "14. Display Queue\n";
+    cout << "15. Save CSV\n";
+
+    cout << "17. Undo Last Action\n";
+    cout << "18. Show Action History\n";
+
+    cout << "16. Exit\n";
+    cout << "Select option: ";
 }
 
+// ================= MAIN =================
 int main() {
+
     StudentList* studentList = createStudentList();
     CourseList* courseList = createCourseList();
     CourseHashTable* courseTable = createCourseHashTable();
     WaitQueue* waitQueue = createWaitQueue();
+
     int choice;
 
-    // Automatically load data at startup so nothing gets lost
+    // Load data
     loadStudentsFromCSV(studentList, "students.csv");
     loadCoursesFromCSV(courseList, "courses.csv");
 
-    // Populate hash table from loaded course list
-    CourseElement* currCourse = courseList->head;
-    while (currCourse != nullptr) {
+    // Build hash table
+    CourseElement* curr = courseList->head;
+    while (curr != nullptr) {
         insertCourseHash(courseTable,
-                         currCourse->data.courseID,
-                         currCourse->data.courseName,
-                         currCourse->data.credits,
-                         currCourse->data.department,
-                         currCourse->data.maxCapacity,
-                         currCourse->data.currentEnrollment,
-                         currCourse->data.instructor);
-        currCourse = currCourse->next;
+            curr->data.courseID,
+            curr->data.courseName,
+            curr->data.credits,
+            curr->data.department,
+            curr->data.maxCapacity,
+            curr->data.currentEnrollment,
+            curr->data.instructor);
+
+        curr = curr->next;
     }
 
     do {
         displayMenu();
-        std::cin >> choice;
-        std::cin.ignore(); 
+        cin >> choice;
+        cin.ignore();
 
-        switch(choice) {
-            case 1: {
-                Student s;
-                std::cout << "Enter Student ID: "; std::getline(std::cin, s.studentID);
-                std::cout << "Enter Full Name: "; std::getline(std::cin, s.name);
-                std::cout << "Enter Major: "; std::getline(std::cin, s.major);
-                std::cout << "Enter Year: "; std::cin >> s.year;
-                std::cout << "Enter GPA: "; std::cin >> s.gpa;
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                std::cout << "Enter enrolled course IDs separated by semicolons (optional): ";
-                std::string enrolledLine;
-                std::getline(std::cin, enrolledLine);
-                s.enrolledCourses = splitCourseCodes(enrolledLine);
-                insertStudentEnd(studentList, s);
-                std::cout << "Student added successfully!\n";
-                break;
-            }
-            case 2:
-                std::cout << "\n--- Student Records ---\n";
-                displayStudents(studentList);
-                break;
-            case 3: {
-                std::string id; double newGpa;
-                std::cout << "Enter Student ID to update: "; std::getline(std::cin, id);
-                std::cout << "Enter New GPA: "; std::cin >> newGpa;
-                if (updateStudentGPA(studentList, id, newGpa)) {
-                    std::cout << "GPA updated successfully!\n";
-                } else {
-                    std::cout << "Student ID target not found.\n";
-                }
-                break;
-            }
-            case 4: {
-                std::string id;
-                std::cout << "Enter Student ID to delete: "; std::getline(std::cin, id);
-                deleteStudentByID(studentList, id);
-                break;
-            }
-            case 5: {
-                Course c;
-                std::cout << "Enter Course ID: "; std::getline(std::cin, c.courseID);
-                std::cout << "Enter Course Name: "; std::getline(std::cin, c.courseName);
-                std::cout << "Enter Credits: "; std::cin >> c.credits;
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                std::cout << "Enter Department: "; std::getline(std::cin, c.department);
-                std::cout << "Enter Max Capacity: "; std::cin >> c.maxCapacity;
-                std::cout << "Enter Current Enrollment: "; std::cin >> c.currentEnrollment;
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                std::cout << "Enter Instructor: "; std::getline(std::cin, c.instructor);
-                insertCourseEnd(courseList, c);
-                insertCourseHash(courseTable,
-                                 c.courseID,
-                                 c.courseName,
-                                 c.credits,
-                                 c.department,
-                                 c.maxCapacity,
-                                 c.currentEnrollment,
-                                 c.instructor);
-                std::cout << "Course added successfully!\n";
-                break;
-            }
-            case 6:
-                std::cout << "\n--- Registered Courses ---\n";
-                displayCourses(courseList);
-                break;
-            case 7:
-                bubbleSortStudentsByName(studentList);
-                std::cout << "Students sorted by name successfully!\n";
-                break;
-            case 8:
-                selectionSortStudentsByGPADescending(studentList);
-                std::cout << "Students sorted by GPA (Descending) successfully!\n";
-                break;
-            case 9:
-                quickSortStudentsByID(studentList);
-                std::cout << "Students sorted by ID via Quick Sort successfully!\n";
-                break;
-            case 10: {
-                std::string courseID;
-                std::cout << "Enter Course ID to search (HashTable): ";
-                std::getline(std::cin, courseID);
-                CourseEntry* result = searchCourseHash(courseTable, courseID);
-                if (result != nullptr) {
-                    std::cout << "Course found: " << result->courseID
-                              << " | " << result->courseName
-                              << " | Credits: " << result->credits
-                              << " | Dept: " << result->department
-                              << " | Enrollment: " << result->currentEnrollment << "/" << result->maxCapacity
-                              << " | Instructor: " << result->instructor << "\n";
-                } else {
-                    std::cout << "Course not found in hash table.\n";
-                }
-                break;
-            }
-            case 11:
-                displayCourseHashTable(courseTable);
-                break;
-            case 12: {
-                std::string studentID, courseID;
-                std::cout << "Enter Student ID for waitlist : "; std::getline(std::cin, studentID);
-                std::cout << "Enter Course ID for waitlist : "; std::getline(std::cin, courseID);
-                enqueueRequest(waitQueue, studentID, courseID);
-                std::cout << "Enrollment request added to waiting queue.\n";
-                break;
-            }
-            case 13: {
-                EnrollmentRequest request;
-                if (dequeueRequest(waitQueue, request)) {
-                    std::cout << "Dequeued waiting student: " << request.studentID
-                              << " for course " << request.courseID << "\n";
-                } else {
-                    std::cout << "Waiting queue is empty.\n";
-                }
-                break;
-            }
-            case 14:
-                displayWaitQueue(waitQueue);
-                break;
-            case 15:
-                saveStudentsToCSV(studentList, "students.csv");
-                saveCoursesToCSV(courseList, "courses.csv");
-                break;
-            case 16:
-                // Auto-save on exit to protect project data
-                saveStudentsToCSV(studentList, "students.csv");
-                saveCoursesToCSV(courseList, "courses.csv");
-                std::cout << "Exiting System... Data saved. Goodbye.\n";
-                break;
-            default:
-                std::cout << "Invalid selection. Please input numbers 1 to 16.\n";
+        switch (choice) {
+
+        // ================= ADD STUDENT =================
+        case 1: {
+            Student s;
+
+            cout << "Enter Student ID: ";
+            getline(cin, s.studentID);
+
+            cout << "Enter Full Name: ";
+            getline(cin, s.name);
+
+            cout << "Enter Major: ";
+            getline(cin, s.major);
+
+            cout << "Enter Year: ";
+            cin >> s.year;
+
+            cout << "Enter GPA: ";
+            cin >> s.gpa;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            cout << "Enter enrolled courses: ";
+            string line;
+            getline(cin, line);
+
+            s.enrolledCourses = splitCourseCodes(line);
+
+            insertStudentEnd(studentList, s);
+
+            // ⭐ UNDO TRACKING
+            undoStack.pushAction(ADD_STUDENT,
+                "ID:" + s.studentID + " Name:" + s.name);
+
+            cout << "Student added successfully!\n";
+            break;
         }
+
+        // ================= DISPLAY STUDENTS =================
+        case 2:
+            displayStudents(studentList);
+            break;
+
+        // ================= UPDATE GPA =================
+        case 3: {
+            string id;
+            double gpa;
+
+            cout << "Enter ID: ";
+            getline(cin, id);
+
+            cout << "Enter new GPA: ";
+            cin >> gpa;
+            cin.ignore();
+
+            if (updateStudentGPA(studentList, id, gpa)) {
+
+                undoStack.pushAction(UPDATE_GPA,
+                    "ID:" + id + " GPA updated");
+
+                cout << "Updated successfully!\n";
+            }
+            else {
+                cout << "Student not found!\n";
+            }
+            break;
+        }
+
+        // ================= DELETE STUDENT =================
+        case 4: {
+            string id;
+
+            cout << "Enter ID to delete: ";
+            getline(cin, id);
+
+            deleteStudentByID(studentList, id);
+
+            undoStack.pushAction(DELETE_STUDENT,
+                "Deleted ID:" + id);
+
+            cout << "Deleted successfully!\n";
+            break;
+        }
+
+        // ================= ADD COURSE =================
+        case 5: {
+            Course c;
+
+            cout << "Enter Course ID: ";
+            getline(cin, c.courseID);
+
+            cout << "Enter Name: ";
+            getline(cin, c.courseName);
+
+            cout << "Enter Credits: ";
+            cin >> c.credits;
+            cin.ignore();
+
+            cout << "Enter Department: ";
+            getline(cin, c.department);
+
+            cout << "Enter Max Capacity: ";
+            cin >> c.maxCapacity;
+
+            cout << "Enter Current Enrollment: ";
+            cin >> c.currentEnrollment;
+            cin.ignore();
+
+            cout << "Enter Instructor: ";
+            getline(cin, c.instructor);
+
+            insertCourseEnd(courseList, c);
+
+            insertCourseHash(courseTable,
+                c.courseID,
+                c.courseName,
+                c.credits,
+                c.department,
+                c.maxCapacity,
+                c.currentEnrollment,
+                c.instructor);
+
+            undoStack.pushAction(ADD_COURSE,
+                "Course:" + c.courseID);
+
+            cout << "Course added!\n";
+            break;
+        }
+
+        // ================= DISPLAY COURSES =================
+        case 6:
+            displayCourses(courseList);
+            break;
+
+        // ================= SORTING =================
+        case 7:
+            bubbleSortStudentsByName(studentList);
+            break;
+
+        case 8:
+            selectionSortStudentsByGPADescending(studentList);
+            break;
+
+        case 9:
+            quickSortStudentsByID(studentList);
+            break;
+
+        // ================= HASH SEARCH =================
+        case 10: {
+            string id;
+            cout << "Enter Course ID: ";
+            getline(cin, id);
+
+            CourseEntry* res = searchCourseHash(courseTable, id);
+
+            if (res)
+                cout << res->courseName << endl;
+            else
+                cout << "Not found\n";
+
+            break;
+        }
+
+        case 11:
+            displayCourseHashTable(courseTable);
+            break;
+
+        // ================= QUEUE =================
+        case 12: {
+            string sid, cid;
+            cout << "Student ID: ";
+            getline(cin, sid);
+
+            cout << "Course ID: ";
+            getline(cin, cid);
+
+            enqueueRequest(waitQueue, sid, cid);
+
+            undoStack.pushAction(DROP_COURSE,
+                sid + " -> " + cid);
+
+            break;
+        }
+
+        case 13: {
+            EnrollmentRequest r;
+            dequeueRequest(waitQueue, r);
+            break;
+        }
+
+        case 14:
+            displayWaitQueue(waitQueue);
+            break;
+
+        // ================= SAVE =================
+        case 15:
+            saveStudentsToCSV(studentList, "students.csv");
+            saveCoursesToCSV(courseList, "courses.csv");
+            break;
+
+        // ================= UNDO =================
+        case 17:
+            undoStack.undo();
+            break;
+
+        case 18:
+            undoStack.showHistory();
+            break;
+
+        // ================= EXIT =================
+        case 16:
+            saveStudentsToCSV(studentList, "students.csv");
+            saveCoursesToCSV(courseList, "courses.csv");
+            cout << "Goodbye!\n";
+            break;
+
+        default:
+            cout << "Invalid option!\n";
+        }
+
     } while (choice != 16);
 
     return 0;

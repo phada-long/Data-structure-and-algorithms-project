@@ -52,8 +52,8 @@ int main() {
 
     StudentList* studentList = createStudentList();
     CourseList* courseList = createCourseList();
-    CourseHashTable* courseTable = createCourseHashTable();
-    WaitQueue* waitQueue = createWaitQueue();
+    CourseHashTable courseTable = createCourseHashTable();
+    WaitQueue waitQueue = createWaitQueue();
     DepartmentNode *departmentTree = nullptr;
 
     int choice;

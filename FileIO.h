@@ -165,7 +165,7 @@ inline void loadCoursesFromCSV(CourseList* ls, std::string filename) {
 }
 
 // Load Queue from CSV
-inline void loadQueueFromCSV(WaitQueue* q, std::string filename) {
+inline void loadQueueFromCSV(WaitQueue& q, std::string filename) {
     std::filesystem::path filePath = g_project_root / filename;
     std::ifstream file(filePath.string());
     if (!file.is_open()) {
@@ -199,7 +199,7 @@ inline void loadQueueFromCSV(WaitQueue* q, std::string filename) {
 }
 
 // Save Queue to CSV
-inline void saveQueueToCSV(WaitQueue* q, std::string filename) {
+inline void saveQueueToCSV(const WaitQueue& q, std::string filename) {
     std::filesystem::path filePath = g_project_root / filename;
     std::ofstream file(filePath.string());
     if (!file.is_open()) {
@@ -212,9 +212,9 @@ inline void saveQueueToCSV(WaitQueue* q, std::string filename) {
 
     int written = 0;
     if (!isWaitQueueEmpty(q)) {
-        for (int i = q->front; i <= q->rear; i++) {
-            file << q->Q[i].studentID << ","
-                 << q->Q[i].courseID << "\n";
+        for (int i = q.front; i <= q.rear; i++) {
+            file << q.Q[i].studentID << ","
+                 << q.Q[i].courseID << "\n";
             written++;
         }
     }

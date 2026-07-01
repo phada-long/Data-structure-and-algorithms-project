@@ -39,11 +39,11 @@ void displayMenu() {
     cout << "13. Dequeue Waitlist\n";
     cout << "14. Display Queue\n";
     cout << "15. Save CSV\n";
-    cout << "16. Exit\n";
-    cout << "17. Undo Last Action\n";
-    cout << "18. Show Action History\n";
-    cout << "19. Display Department Tree\n";
-    cout << "20. Search Department\n";
+    cout << "16. Undo Last Action\n";
+    cout << "17. Show Action History\n";
+    cout << "18. Display Department Tree\n";
+    cout << "19. Search Department\n";
+    cout << "20. Exit\n";
     cout << "Select option: ";
 }
 
